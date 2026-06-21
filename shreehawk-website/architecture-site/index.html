@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ShreeHawk — Architecture & Spatial Design</title>
+<meta name="description" content="ShreeHawk is a contemporary architecture practice building quiet, disciplined spaces across residential, cultural, and civic scales." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  /* ===================== Reset & Base ===================== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  body {
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #FFFFFF;
+    color: #0A0A0A;
+    font-size: 16px;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+  img { display: block; max-width: 100%; height: auto; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+  ::selection { background: #0A0A0A; color: #FFFFFF; }
+
+  :root {
+    --bg: #FFFFFF;
+    --bg-soft: #FFFFFF;
+    --ink: #0A0A0A;
+    --ink-2: #1A1A1A;
+    --ink-3: #2A2A2A;
+    --line: #E0E0E0;
+    --line-strong: #0A0A0A;
+    --muted: #6A6A6A;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  .container { width: 100%; max-width: 1480px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 56px); }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eyebrow::before { content: ''; width: 28px; height: 1px; background: currentColor; }
+  .mono { font-family: var(--mono); }
+
+  /* ===================== Pattern System ===================== */
+  .pattern-dot {
+    background-image: radial-gradient(circle, #0A0A0A 1px, transparent 1.2px);
+    background-size: 14px 14px;
+  }
+  .pattern-grid {
+    background-image:
+      linear-gradient(to right, rgba(10,10,10,0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(10,10,10,0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .pattern-hatch {
+    background-image: repeating-linear-gradient(
+      45deg,
+      #0A0A0A 0,
+      #0A0A0A 1px,
+      transparent 1px,
+      transparent 10px
+    );
+  }
+  .pattern-camo {
+    background-color: #0A0A0A;
+    background-image:
+      radial-gradient(ellipse 80px 60px at 20% 30%, #2A2A2A 60%, transparent 62%),
+      radial-gradient(ellipse 100px 70px at 70% 20%, #1A1A1A 60%, transparent 62%),
+      radial-gradient(ellipse 90px 80px at 40% 80%, #2A2A2A 60%, transparent 62%),
+      radial-gradient(ellipse 70px 50px at 85% 75%, #1A1A1A 60%, transparent 62%),
+      radial-gradient(ellipse 60px 90px at 10% 70%, #1A1A1A 60%, transparent 62%);
+  }
+  .pattern-checker {
+    background-image:
+      linear-gradient(45deg, #0A0A0A 25%, transparent 25%),
+      linear-gradient(-45deg, #0A0A0A 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #0A0A0A 75%),
+      linear-gradient(-45deg, transparent 75%, #0A0A0A 75%);
+    background-size: 24px 24px;
+    background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+    background-color: #FFFFFF;
+  }
+  .pattern-noise {
+    position: relative;
+  }
+  .pattern-noise::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.35 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    opacity: 0.4; mix-blend-mode: multiply;
+  }
+
+  /* ===================== Nav ===================== */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 20px clamp(20px, 4vw, 56px);
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-bottom: 1px solid transparent;
+    transition: border-color .4s, padding .4s, background .4s;
+  }
+  .nav.scrolled { border-bottom-color: var(--line); padding-top: 14px; padding-bottom: 14px; background: rgba(255,255,255,0.92); }
+  .brand { display: flex; align-items: center; gap: 12px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  .brand-mark {
+    width: 32px; height: 32px;
+    background: #0A0A0A;
+    color: #FFFFFF;
+    display: grid; place-items: center;
+    position: relative;
+  }
+  .brand-mark::before {
+    content: ''; position: absolute; inset: 4px;
+    background:
+      linear-gradient(45deg, transparent 48%, #FFFFFF 48%, #FFFFFF 52%, transparent 52%),
+      linear-gradient(-45deg, transparent 48%, #FFFFFF 48%, #FFFFFF 52%, transparent 52%);
+  }
+  .nav-links { display: flex; gap: 36px; font-size: 13px; font-weight: 500; }
+  .nav-links a { position: relative; padding: 4px 0; transition: opacity .3s; }
+  .nav-links a:hover { opacity: 0.6; }
+  .nav-cta {
+    font-size: 12px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 10px 18px; background: #0A0A0A; color: #FFFFFF;
+    transition: background .3s, color .3s;
+  }
+  .nav-cta:hover { background: #FFFFFF; color: #0A0A0A; box-shadow: inset 0 0 0 1.5px #0A0A0A; }
+  .menu-toggle { display: none; flex-direction: column; gap: 5px; width: 28px; }
+  .menu-toggle span { display: block; height: 1.5px; background: var(--ink); transition: transform .3s, opacity .3s; }
+
+  /* ===================== Hero Carousel ===================== */
+  .hero-carousel {
+    position: relative;
+    height: 100vh;
+    min-height: 640px;
+    overflow: hidden;
+    background: #0A0A0A;
+  }
+  .slides {
+    position: absolute; inset: 0;
+  }
+  .slide {
+    position: absolute; inset: 0;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; pointer-events: auto; }
+  .slide-bg {
+    position: absolute; inset: 0;
+    background-size: cover;
+    background-position: center;
+    transform: scale(1.08);
+    transition: transform 7s ease-out;
+  }
+  .slide.active .slide-bg { transform: scale(1); }
+  .slide::after {
+    content: ''; position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(10,10,10,0.55) 0%, transparent 35%, transparent 55%, rgba(10,10,10,0.75) 100%),
+      linear-gradient(90deg, rgba(10,10,10,0.45) 0%, transparent 50%);
+  }
+
+  .slide-content {
+    position: relative;
+    height: 100%;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0 clamp(20px, 4vw, 56px) clamp(80px, 10vw, 120px);
+    color: #FFFFFF;
+  }
+  .slide-tag {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+    margin-bottom: 18px;
+    display: inline-flex; align-items: center; gap: 12px;
+    color: #FFFFFF;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .8s ease .2s, transform .8s ease .2s;
+  }
+  .slide-tag::before { content: ''; width: 30px; height: 1px; background: #FFFFFF; }
+  .slide.active .slide-tag { opacity: 1; transform: translateY(0); }
+
+  .slide-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 300;
+    font-size: clamp(48px, 8.5vw, 140px);
+    line-height: 0.94;
+    letter-spacing: -0.035em;
+    max-width: 14ch;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 1s ease .35s, transform 1s ease .35s;
+  }
+  .slide.active .slide-title { opacity: 1; transform: translateY(0); }
+  .slide-title em { font-style: normal; font-weight: 500; }
+  .slide-sub {
+    margin-top: 24px;
+    font-size: 15px;
+    color: rgba(255,255,255,0.8);
+    max-width: 460px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity .9s ease .55s, transform .9s ease .55s;
+  }
+  .slide.active .slide-sub { opacity: 1; transform: translateY(0); }
+
+  /* Pattern overlay on slide */
+  .slide-pattern {
+    position: absolute;
+    top: 0; right: 0;
+    width: 240px; height: 240px;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 1.4s ease .6s;
+  }
+  .slide.active .slide-pattern { opacity: 1; }
+  .slide-pattern .pattern-camo { width: 100%; height: 100%; }
+
+  /* Carousel UI */
+  .carousel-ui {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 5;
+    padding: 0 clamp(20px, 4vw, 56px) 28px;
+    color: #FFFFFF;
+  }
+  .carousel-progress {
+    display: flex; gap: 4px; margin-bottom: 18px;
+  }
+  .carousel-progress .bar {
+    flex: 1; height: 2px; background: rgba(255,255,255,0.25);
+    position: relative; overflow: hidden;
+  }
+  .carousel-progress .bar-fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 0; background: #FFFFFF;
+    transition: width linear;
+  }
+  .carousel-progress .bar.done .bar-fill { width: 100%; }
+  .carousel-bottom {
+    display: flex; justify-content: space-between; align-items: end;
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .carousel-counter { display: flex; align-items: baseline; gap: 8px; }
+  .carousel-counter .current { font-size: 22px; font-weight: 500; color: #FFFFFF; }
+  .carousel-counter .total { color: rgba(255,255,255,0.6); }
+  .carousel-arrows { display: flex; gap: 8px; }
+  .carousel-arrows button {
+    width: 44px; height: 44px;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 50%;
+    color: #FFFFFF;
+    display: grid; place-items: center;
+    transition: background .3s, border-color .3s;
+  }
+  .carousel-arrows button:hover { background: #FFFFFF; color: #0A0A0A; border-color: #FFFFFF; }
+  .carousel-arrows svg { width: 14px; height: 14px; }
+  .carousel-dots {
+    position: absolute;
+    right: clamp(20px, 4vw, 56px);
+    top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 12px;
+    z-index: 5;
+  }
+  .carousel-dots button {
+    width: 8px; height: 8px;
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 50%;
+    background: transparent;
+    transition: background .3s, transform .3s;
+    padding: 0;
+  }
+  .carousel-dots button.active { background: #FFFFFF; transform: scale(1.3); }
+
+  /* ===================== Marquee ===================== */
+  .marquee {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 26px 0;
+    overflow: hidden;
+    background: #FFFFFF;
+  }
+  .marquee-track {
+    display: flex; gap: 60px;
+    white-space: nowrap;
+    animation: marquee 36s linear infinite;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    font-size: clamp(22px, 3.4vw, 44px);
+    letter-spacing: -0.01em;
+  }
+  .marquee-track span { display: inline-flex; align-items: center; gap: 60px; }
+  .marquee-track span::after {
+    content: ''; width: 12px; height: 12px;
+    background: #0A0A0A;
+    display: inline-block;
+  }
+  @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ===================== Sections ===================== */
+  section { padding: clamp(80px, 11vw, 160px) 0; position: relative; }
+  .section-head {
+    display: grid; grid-template-columns: 1fr 2fr;
+    gap: 40px; align-items: end;
+    margin-bottom: clamp(48px, 6vw, 96px);
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-head h2 {
+    font-weight: 300;
+    font-size: clamp(36px, 5.2vw, 80px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .section-head h2 em { font-style: normal; font-weight: 600; }
+  .section-head p { color: var(--muted); font-size: 15px; max-width: 460px; }
+
+  /* ===================== About ===================== */
+  .about { background: #FFFFFF; }
+  .philosophy-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(40px, 6vw, 100px);
+    align-items: center;
+  }
+  .philosophy-image {
+    position: relative;
+    aspect-ratio: 5/6;
+    overflow: hidden;
+    background: #0A0A0A;
+  }
+  .philosophy-image img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 1.6s ease;
+  }
+  .philosophy-image:hover img { transform: scale(1.05); }
+  .philosophy-image::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 140px; height: 140px;
+    z-index: 2;
+    background:
+      linear-gradient(45deg, #FFFFFF 25%, transparent 25%) 0 0/28px 28px,
+      linear-gradient(-45deg, #FFFFFF 25%, transparent 25%) 0 0/28px 28px;
+  }
+  .philosophy-image::after {
+    content: 'SH/N°04'; position: absolute; bottom: 16px; right: 16px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+    color: #FFFFFF; z-index: 2;
+    background: #0A0A0A; padding: 6px 10px;
+  }
+  .philosophy-text h3 {
+    font-weight: 300;
+    font-size: clamp(28px, 3.4vw, 48px);
+    line-height: 1.1;
+    margin: 22px 0 28px;
+    letter-spacing: -0.025em;
+  }
+  .philosophy-text h3 em { font-style: normal; font-weight: 600; }
+  .philosophy-text p { color: var(--muted); margin-bottom: 18px; font-size: 16px; max-width: 540px; }
+  .signature { margin-top: 36px; display: flex; align-items: center; gap: 18px; }
+  .signature-mark { font-family: 'Space Grotesk'; font-size: 28px; font-weight: 600; letter-spacing: -0.02em; }
+  .signature-text { font-size: 13px; color: var(--muted); line-height: 1.4; }
+  .signature-text strong { display: block; color: var(--ink); font-weight: 500; }
+
+  /* ===================== Projects ===================== */
+  .projects { background: #0A0A0A; color: #FFFFFF; }
+  .projects .section-head { border-bottom-color: rgba(255,255,255,0.15); }
+  .projects .section-head p { color: rgba(255,255,255,0.6); }
+  .projects .eyebrow { color: #FFFFFF; }
+  .projects .eyebrow::before { background: #FFFFFF; }
+  .projects .section-head h2 { color: #FFFFFF; }
+  .projects .section-head h2 em { color: #FFFFFF; }
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: clamp(16px, 2vw, 28px);
+  }
+  .project {
+    position: relative;
+    overflow: hidden;
+    background: #1A1A1A;
+    cursor: pointer;
+  }
+  .project img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 1.4s cubic-bezier(.2,.7,.2,1);
+  }
+  .project:hover img { transform: scale(1.06); }
+  .project-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 40%, rgba(10,10,10,0.85));
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: clamp(20px, 2.4vw, 36px);
+    color: #FFFFFF;
+  }
+  .project-overlay .num {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; opacity: 0.7; margin-bottom: 10px;
+  }
+  .project-overlay h3 {
+    font-weight: 400;
+    font-size: clamp(22px, 2.4vw, 36px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  .project-overlay .meta {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    margin-top: 10px;
+    display: flex; gap: 14px; opacity: 0.75;
+  }
+  .project-overlay .meta span::before { content: '/'; margin-right: 14px; opacity: 0.6; }
+  .project-overlay .meta span:first-child::before { display: none; }
+  .project-pattern {
+    position: absolute; top: 0; right: 0;
+    width: 80px; height: 80px;
+    z-index: 2;
+    background:
+      linear-gradient(45deg, #FFFFFF 25%, transparent 25%) 0 0/14px 14px,
+      linear-gradient(-45deg, #FFFFFF 25%, transparent 25%) 0 0/14px 14px;
+    opacity: 0.9;
+  }
+  .p-1 { grid-column: span 7; aspect-ratio: 4/3; }
+  .p-2 { grid-column: span 5; aspect-ratio: 4/3; }
+  .p-3 { grid-column: span 5; aspect-ratio: 4/3; }
+  .p-4 { grid-column: span 7; aspect-ratio: 4/3; }
+  .p-5 { grid-column: span 12; aspect-ratio: 21/9; }
+  .p-6 { grid-column: span 6; aspect-ratio: 4/3; }
+  .p-7 { grid-column: span 6; aspect-ratio: 4/3; }
+
+  /* ===================== Services ===================== */
+  .services { background: #FFFFFF; }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--line);
+  }
+  .service {
+    padding: 44px 32px 44px 0;
+    border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    transition: background .5s;
+    position: relative;
+  }
+  .service:nth-child(3n) { border-right: none; }
+  .service:hover { background: var(--bg-soft); }
+  .service-num { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 48px; letter-spacing: 0.1em; }
+  .service h4 {
+    font-weight: 400;
+    font-size: clamp(24px, 2.4vw, 32px);
+    line-height: 1.15;
+    margin-bottom: 16px;
+    letter-spacing: -0.015em;
+  }
+  .service p { color: var(--muted); font-size: 14px; line-height: 1.65; max-width: 32ch; }
+  .service-icon {
+    position: absolute; top: 36px; right: 32px;
+    width: 32px; height: 32px;
+    background: #0A0A0A;
+    display: grid; place-items: center;
+    color: #FFFFFF;
+    font-family: var(--mono); font-size: 11px;
+  }
+
+  /* ===================== Pattern Banner ===================== */
+  .pattern-banner {
+    height: 280px;
+    background-color: #FFFFFF;
+    background-image:
+      linear-gradient(45deg, #0A0A0A 25%, transparent 25%),
+      linear-gradient(-45deg, #0A0A0A 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #0A0A0A 75%),
+      linear-gradient(-45deg, transparent 75%, #0A0A0A 75%);
+    background-size: 40px 40px;
+    background-position: 0 0, 0 20px, 20px -20px, -20px 0;
+    position: relative;
+    display: grid; place-items: center;
+    color: #FFFFFF;
+    overflow: hidden;
+  }
+  .pattern-banner::before {
+    content: ''; position: absolute; inset: 0;
+    background: #FFFFFF;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    mask: linear-gradient(90deg, transparent 0, #000 50%, transparent 100%);
+    -webkit-mask: linear-gradient(90deg, transparent 0, #000 50%, transparent 100%);
+  }
+  .pattern-banner-inner {
+    position: relative;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 300;
+    font-size: clamp(40px, 7vw, 110px);
+    letter-spacing: -0.04em;
+    text-align: center;
+    line-height: 1;
+    mix-blend-mode: difference;
+    color: #FFFFFF;
+  }
+
+  /* ===================== Recognition ===================== */
+  .recognition { background: #FFFFFF; }
+  .recognition-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--line);
+  }
+  .recognition-item {
+    padding: 36px 24px 36px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .recognition-item .year { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 12px; letter-spacing: 0.15em; }
+  .recognition-item .title { font-size: 18px; font-weight: 500; line-height: 1.3; margin-bottom: 6px; letter-spacing: -0.01em; }
+  .recognition-item .where { font-size: 13px; color: var(--muted); }
+
+  /* ===================== Studio ===================== */
+  .studio { background: #FFFFFF; }
+  .studio-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+  .team-member { position: relative; }
+  .team-member .photo {
+    aspect-ratio: 3/4;
+    overflow: hidden;
+    background: #0A0A0A;
+    position: relative;
+  }
+  .team-member .photo img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 1.2s;
+  }
+  .team-member:hover .photo img { transform: scale(1.04); }
+  .team-member .info { padding-top: 20px; display: flex; justify-content: space-between; align-items: baseline; }
+  .team-member .name { font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+  .team-member .role { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--muted); }
+
+  /* ===================== Contact ===================== */
+  .contact {
+    background: #0A0A0A;
+    color: #FFFFFF;
+    text-align: center;
+    padding: clamp(100px, 14vw, 200px) 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .contact::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse 80px 60px at 20% 30%, #1A1A1A 60%, transparent 62%),
+      radial-gradient(ellipse 100px 70px at 70% 20%, #2A2A2A 60%, transparent 62%),
+      radial-gradient(ellipse 90px 80px at 40% 80%, #1A1A1A 60%, transparent 62%),
+      radial-gradient(ellipse 70px 50px at 85% 75%, #2A2A2A 60%, transparent 62%),
+      radial-gradient(ellipse 60px 90px at 10% 70%, #1A1A1A 60%, transparent 62%);
+    pointer-events: none;
+  }
+  .contact .container { position: relative; z-index: 1; }
+  .contact .eyebrow { color: #FFFFFF; justify-content: center; }
+  .contact .eyebrow::before { background: #FFFFFF; }
+  .contact h2 {
+    font-weight: 300;
+    font-size: clamp(48px, 8vw, 130px);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+    margin: 28px 0 36px;
+  }
+  .contact h2 em { font-style: normal; font-weight: 600; }
+  .contact-btn {
+    display: inline-flex; align-items: center; gap: 14px;
+    padding: 18px 32px;
+    border: 1px solid rgba(255,255,255,0.4);
+    font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: #FFFFFF;
+    transition: background .4s, color .4s, border-color .4s;
+  }
+  .contact-btn:hover { background: #FFFFFF; color: #0A0A0A; border-color: #FFFFFF; }
+  .contact-btn .arrow { width: 20px; height: 1px; background: currentColor; position: relative; }
+  .contact-btn .arrow::after { content: ''; position: absolute; right: 0; top: -3px; width: 8px; height: 8px; border-top: 1px solid currentColor; border-right: 1px solid currentColor; transform: rotate(45deg); }
+  .contact-meta {
+    display: flex; justify-content: center; gap: 60px; flex-wrap: wrap;
+    margin-top: 80px; padding-top: 40px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    font-family: var(--mono); font-size: 12px; color: rgba(255,255,255,0.7);
+    letter-spacing: 0.05em;
+  }
+  .contact-meta strong { display: block; color: #FFFFFF; font-weight: 500; margin-bottom: 6px; font-size: 13px; }
+
+  /* ===================== Footer ===================== */
+  footer {
+    background: #0A0A0A;
+    color: rgba(255,255,255,0.55);
+    padding: 32px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .footer-grid {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .footer-grid .links { display: flex; gap: 24px; }
+  .footer-grid .links a:hover { color: #FFFFFF; }
+  .footer-grid .stripe {
+    display: inline-block; width: 18px; height: 6px;
+    background:
+      linear-gradient(45deg, #FFFFFF 25%, transparent 25%) 0 0/6px 6px,
+      linear-gradient(-45deg, #FFFFFF 25%, transparent 25%) 0 0/6px 6px;
+  }
+
+  /* ===================== Reveal ===================== */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 1s ease, transform 1s cubic-bezier(.2,.7,.2,1); }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+  .reveal-d1 { transition-delay: 0.1s; }
+  .reveal-d2 { transition-delay: 0.2s; }
+  .reveal-d3 { transition-delay: 0.3s; }
+
+  /* ===================== Responsive ===================== */
+  @media (max-width: 960px) {
+    .nav-links { display: none; }
+    .nav-cta { display: none; }
+    .menu-toggle { display: flex; }
+    .section-head { grid-template-columns: 1fr; gap: 20px; }
+    .philosophy-grid { grid-template-columns: 1fr; }
+    .services-grid { grid-template-columns: 1fr; }
+    .service { border-right: none; }
+    .recognition-grid { grid-template-columns: repeat(2, 1fr); }
+    .studio-grid { grid-template-columns: 1fr 1fr; }
+    .p-1, .p-2, .p-3, .p-4, .p-6, .p-7 { grid-column: span 12; }
+    .p-5 { grid-column: span 12; }
+    .contact-meta { gap: 32px; }
+    .carousel-dots { display: none; }
+  }
+  @media (max-width: 600px) {
+    .studio-grid { grid-template-columns: 1fr; }
+    .recognition-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ===================== Press Carousel ===================== */
+  .press-carousel {
+    background: #FFFFFF;
+    color: #0A0A0A;
+    padding: clamp(80px, 11vw, 160px) 0;
+    border-top: 1px solid var(--line);
+    position: relative;
+    overflow: hidden;
+  }
+  .press-head {
+    display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: 20px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: clamp(48px, 6vw, 96px);
+  }
+  .press-head .press-title {
+    font-weight: 300;
+    font-size: clamp(28px, 3.6vw, 52px);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+  .press-head .press-title em { font-style: normal; font-weight: 600; }
+  .press-head .press-arrows { display: flex; gap: 8px; }
+  .press-head .press-arrows button {
+    width: 48px; height: 48px;
+    border: 1px solid #0A0A0A;
+    border-radius: 50%;
+    color: #0A0A0A;
+    display: grid; place-items: center;
+    transition: background .3s, color .3s;
+  }
+  .press-head .press-arrows button:hover { background: #0A0A0A; color: #FFFFFF; }
+  .press-head .press-arrows svg { width: 14px; height: 14px; }
+  .press-track-wrap { position: relative; overflow: hidden; }
+  .press-track {
+    display: flex;
+    transition: transform .8s cubic-bezier(.2,.7,.2,1);
+  }
+  .press-slide {
+    flex: 0 0 100%;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(32px, 5vw, 80px);
+    align-items: center;
+    padding: 0 8px;
+  }
+  .press-quote-block { position: relative; }
+  .press-quote-mark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(100px, 12vw, 180px);
+    line-height: 0.7;
+    color: #0A0A0A;
+    font-weight: 500;
+    user-select: none;
+    display: block;
+    margin-bottom: -8px;
+  }
+  .press-quote {
+    font-weight: 300;
+    font-size: clamp(22px, 2.4vw, 36px);
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: #0A0A0A;
+    max-width: 28ch;
+  }
+  .press-quote em { font-style: normal; font-weight: 500; }
+  .press-meta {
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    margin-top: 36px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .press-meta strong {
+    color: #0A0A0A; font-weight: 500; font-size: 13px;
+  }
+  .press-image {
+    aspect-ratio: 4/5;
+    overflow: hidden;
+    background: #0A0A0A;
+    position: relative;
+  }
+  .press-image img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform 1.2s ease;
+  }
+  .press-image:hover img { transform: scale(1.04); }
+  .press-dots {
+    display: flex; gap: 8px; justify-content: center;
+    margin-top: 56px;
+  }
+  .press-dots button {
+    width: 28px; height: 2px;
+    background: rgba(10,10,10,0.2);
+    border: none;
+    padding: 0;
+    transition: background .3s;
+  }
+  .press-dots button.active { background: #0A0A0A; }
+  @media (max-width: 960px) {
+    .press-slide { grid-template-columns: 1fr; gap: 32px; }
+    .press-image { aspect-ratio: 16/10; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== NAV ============== -->
+<nav class="nav" id="nav">
+  <a href="#top" class="brand">
+    <span class="brand-mark"></span>
+    ShreeHawk
+  </a>
+  <div class="nav-links">
+    <a href="#work">Work</a>
+    <a href="#about">Studio</a>
+    <a href="#services">Services</a>
+    <a href="#press">Press</a>
+    <a href="#team">People</a>
+  </div>
+  <a href="#contact" class="nav-cta">Get in touch</a>
+  <button class="menu-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- ============== HERO CAROUSEL ============== -->
+<section class="hero-carousel" id="top">
+  <div class="slides" id="slides">
+    <div class="slide active" data-slide="0">
+      <div class="slide-bg" style="background-image: url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=2000&q=80');"></div>
+      <div class="slide-content">
+        <span class="slide-tag">N°01 / Residential / Norway</span>
+        <h1 class="slide-title">Fjord <em>House</em></h1>
+        <p class="slide-sub">A concrete-and-glass family home carved into a Norwegian cliffside, completed autumn 2024.</p>
+      </div>
+    </div>
+
+    <div class="slide" data-slide="1">
+      <div class="slide-bg" style="background-image: url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=2000&q=80');"></div>
+      <div class="slide-content">
+        <span class="slide-tag">N°02 / Cultural / Portugal</span>
+        <h1 class="slide-title">Stone <em>Library</em></h1>
+        <p class="slide-sub">A municipal archive in compressed rammed earth — quiet, cool, and intended to outlast its century.</p>
+      </div>
+    </div>
+
+    <div class="slide" data-slide="2">
+      <div class="slide-bg" style="background-image: url('https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=2000&q=80');"></div>
+      <div class="slide-content">
+        <span class="slide-tag">N°03 / Workspace / Kyoto</span>
+        <h1 class="slide-title">Atelier <em>Mingei</em></h1>
+        <p class="slide-sub">A craft workshop and residency for textile artists in a converted Meiji-era warehouse.</p>
+      </div>
+    </div>
+
+    <div class="slide" data-slide="3">
+      <div class="slide-bg" style="background-image: url('https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=2000&q=80');"></div>
+      <div class="slide-content">
+        <span class="slide-tag">N°04 / Public / Tromsø</span>
+        <h1 class="slide-title">Nordlys <em>Center</em></h1>
+        <p class="slide-sub">A civic and cultural center anchored by a timber long-span roof, opening to the northern sky.</p>
+      </div>
+    </div>
+
+    <div class="slide" data-slide="4">
+      <div class="slide-bg" style="background-image: url('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=2000&q=80');"></div>
+      <div class="slide-content">
+        <span class="slide-tag">N°05 / Residential / Comporta</span>
+        <h1 class="slide-title">Casa <em>Litoral</em></h1>
+        <p class="slide-sub">A whitewashed coastal retreat on the Portuguese dune line — three pavilions under one timber canopy.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="carousel-dots" id="dots"></div>
+
+  <div class="carousel-ui">
+    <div class="carousel-progress" id="progress"></div>
+    <div class="carousel-bottom">
+      <div class="carousel-counter">
+        <span class="current" id="current">01</span>
+        <span class="total">/ 05</span>
+      </div>
+      <div class="carousel-arrows">
+        <button id="prev" aria-label="Previous slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6 L9 12 L15 18"/></svg>
+        </button>
+        <button id="next" aria-label="Next slide">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 6 L15 12 L9 18"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== MARQUEE ============== -->
+<div class="marquee">
+  <div class="marquee-track">
+    <span>Architecture</span><span>Interiors</span><span>Urban Design</span><span>Adaptive Reuse</span><span>Research</span><span>Climate</span>
+    <span>Architecture</span><span>Interiors</span><span>Urban Design</span><span>Adaptive Reuse</span><span>Research</span><span>Climate</span>
+  </div>
+</div>
+
+<!-- ============== ABOUT ============== -->
+<section class="about" id="about">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">01 — The Studio</span>
+      <h2>Quiet buildings, <em>quiet</em> details.</h2>
+    </div>
+
+    <div class="philosophy-grid">
+      <div class="philosophy-image reveal">
+        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" alt="Interior with natural light" />
+      </div>
+      <div class="philosophy-text">
+        <span class="eyebrow reveal">Philosophy</span>
+        <h3 class="reveal reveal-d1">We design buildings that <em>listen to their place</em>—not the trend cycle.</h3>
+        <p class="reveal reveal-d2">ShreeHawk is a practice of architects, designers, and researchers working across scales—from a single window detail to a coastal district master plan.</p>
+        <p class="reveal reveal-d2">Our work is grounded in three commitments: material honesty, tectonic clarity, and a deep respect for the cultures and landscapes we build within.</p>
+        <div class="signature reveal reveal-d3">
+          <div class="signature-mark">SH.</div>
+          <div class="signature-text">
+            <strong>Founding Partner</strong>
+            ShreeHawk Atelier · Est. 2007
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== PRESS CAROUSEL ============== -->
+<section class="press-carousel" id="press-featured">
+  <div class="container">
+    <div class="press-head">
+      <div>
+        <span class="eyebrow">02 — In the Press</span>
+        <h2 class="press-title" style="margin-top: 18px;">What the world <em>says</em> about us.</h2>
+      </div>
+      <div class="press-arrows">
+        <button id="pressPrev" aria-label="Previous quote">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 6 L9 12 L15 18"/></svg>
+        </button>
+        <button id="pressNext" aria-label="Next quote">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 6 L15 12 L9 18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="press-track-wrap">
+      <div class="press-track" id="pressTrack">
+        <div class="press-slide">
+          <div class="press-quote-block">
+            <span class="press-quote-mark">“</span>
+            <p class="press-quote">A practice that has quietly become <em>one of the most compelling voices</em> in Northern European architecture.</p>
+            <div class="press-meta">
+              <strong>Dezeen</strong>
+              <span>2024</span>
+              <span>Annual Review</span>
+            </div>
+          </div>
+          <div class="press-image">
+            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80" alt="Dezeen feature image" />
+          </div>
+        </div>
+
+        <div class="press-slide">
+          <div class="press-quote-block">
+            <span class="press-quote-mark">“</span>
+            <p class="press-quote">Their buildings do not shout. They <em>wait, and then they stay</em>—a rare discipline in our times.</p>
+            <div class="press-meta">
+              <strong>Wallpaper*</strong>
+              <span>2024</span>
+              <span>Design Awards Issue</span>
+            </div>
+          </div>
+          <div class="press-image">
+            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80" alt="Wallpaper feature image" />
+          </div>
+        </div>
+
+        <div class="press-slide">
+          <div class="press-quote-block">
+            <span class="press-quote-mark">“</span>
+            <p class="press-quote">ShreeHawk's Stone Library is the most <em>measured and patient</em> public building completed this decade.</p>
+            <div class="press-meta">
+              <strong>Architectural Review</strong>
+              <span>2023</span>
+              <span>Emerging Architecture</span>
+            </div>
+          </div>
+          <div class="press-image">
+            <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80" alt="Architectural Review feature image" />
+          </div>
+        </div>
+
+        <div class="press-slide">
+          <div class="press-quote-block">
+            <span class="press-quote-mark">“</span>
+            <p class="press-quote">Restraint, material, and a deep sense of <em>place</em>—this is what contemporary Nordic practice should look like.</p>
+            <div class="press-meta">
+              <strong>Domus</strong>
+              <span>2023</span>
+              <span>Volume 1080</span>
+            </div>
+          </div>
+          <div class="press-image">
+            <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1200&q=80" alt="Domus feature image" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="press-dots" id="pressDots"></div>
+  </div>
+</section>
+
+<!-- ============== PROJECTS ============== -->
+<section class="projects" id="work">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">02 — Selected Work</span>
+      <h2>Recent <em>projects</em>.</h2>
+    </div>
+
+    <div class="projects-grid">
+      <article class="project p-1 reveal">
+        <div class="project-pattern"></div>
+        <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1400&q=80" alt="Fjord House" />
+        <div class="project-overlay">
+          <div class="num">N°01</div>
+          <h3>Fjord House</h3>
+          <div class="meta"><span>Residential</span><span>Norway</span><span>2024</span></div>
+        </div>
+      </article>
+
+      <article class="project p-2 reveal reveal-d1">
+        <div class="project-pattern"></div>
+        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80" alt="Stone Library" />
+        <div class="project-overlay">
+          <div class="num">N°02</div>
+          <h3>Stone Library</h3>
+          <div class="meta"><span>Cultural</span><span>Portugal</span><span>2023</span></div>
+        </div>
+      </article>
+
+      <article class="project p-3 reveal reveal-d1">
+        <div class="project-pattern"></div>
+        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80" alt="Casa Litoral" />
+        <div class="project-overlay">
+          <div class="num">N°03</div>
+          <h3>Casa Litoral</h3>
+          <div class="meta"><span>Residential</span><span>Comporta</span><span>2023</span></div>
+        </div>
+      </article>
+
+      <article class="project p-4 reveal">
+        <div class="project-pattern"></div>
+        <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1400&q=80" alt="Atelier Mingei" />
+        <div class="project-overlay">
+          <div class="num">N°04</div>
+          <h3>Atelier Mingei</h3>
+          <div class="meta"><span>Workspace</span><span>Kyoto</span><span>2022</span></div>
+        </div>
+      </article>
+
+      <article class="project p-5 reveal">
+        <div class="project-pattern"></div>
+        <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1800&q=80" alt="Nordlys Civic Center" />
+        <div class="project-overlay">
+          <div class="num">N°05</div>
+          <h3>Nordlys Civic Center</h3>
+          <div class="meta"><span>Public</span><span>Tromsø</span><span>2024</span></div>
+        </div>
+      </article>
+
+      <article class="project p-6 reveal">
+        <div class="project-pattern"></div>
+        <img src="https://images.unsplash.com/photo-1449844908441-8829872d2607?auto=format&fit=crop&w=1200&q=80" alt="Hytte 14" />
+        <div class="project-overlay">
+          <div class="num">N°06</div>
+          <h3>Hytte 14</h3>
+          <div class="meta"><span>Cabin</span><span>Austria</span><span>2022</span></div>
+        </div>
+      </article>
+
+      <article class="project p-7 reveal reveal-d1">
+        <div class="project-pattern"></div>
+        <img src="https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1200&q=80" alt="Salk Pavilion" />
+        <div class="project-overlay">
+          <div class="num">N°07</div>
+          <h3>Salk Pavilion</h3>
+          <div class="meta"><span>Cultural</span><span>Denmark</span><span>2021</span></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============== SERVICES ============== -->
+<section class="services" id="services">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">03 — What We Do</span>
+      <h2>From <em>concept</em> to detail.</h2>
+    </div>
+
+    <div class="services-grid">
+      <div class="service reveal">
+        <div class="service-icon">01</div>
+        <div class="service-num">— Practice</div>
+        <h4>Architecture</h4>
+        <p>Residential, cultural, civic, and commercial buildings—each conceived as a specific response to site, brief, and time.</p>
+      </div>
+      <div class="service reveal reveal-d1">
+        <div class="service-icon">02</div>
+        <div class="service-num">— Practice</div>
+        <h4>Interiors</h4>
+        <p>Material-led interior architecture. Furniture, lighting, and surface design developed in-house alongside the building itself.</p>
+      </div>
+      <div class="service reveal reveal-d2">
+        <div class="service-icon">03</div>
+        <div class="service-num">— Practice</div>
+        <h4>Urban Design</h4>
+        <p>Master plans, public realm strategies, and coastal district frameworks with a long-horizon view of place-making.</p>
+      </div>
+      <div class="service reveal">
+        <div class="service-icon">04</div>
+        <div class="service-num">— Practice</div>
+        <h4>Adaptive Reuse</h4>
+        <p>Working with existing fabric—industrial, civic, and vernacular—to extend its life and meaning for the next century.</p>
+      </div>
+      <div class="service reveal reveal-d1">
+        <div class="service-icon">05</div>
+        <div class="service-num">— Practice</div>
+        <h4>Research & Climate</h4>
+        <p>A dedicated research team exploring low-carbon timber systems, passive design, and circular material economies.</p>
+      </div>
+      <div class="service reveal reveal-d2">
+        <div class="service-icon">06</div>
+        <div class="service-num">— Practice</div>
+        <h4>Art Direction</h4>
+        <p>Books, exhibitions, and brand identities for cultural institutions, designed with the same rigor as our buildings.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== PATTERN BANNER ============== -->
+<div class="pattern-banner">
+  <div class="pattern-banner-inner">Discipline. Detail. Time.</div>
+</div>
+
+<!-- ============== RECOGNITION ============== -->
+<section class="recognition" id="press">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">04 — Recognition</span>
+      <h2>Awards & <em>press</em>.</h2>
+    </div>
+
+    <div class="recognition-grid">
+      <div class="recognition-item reveal">
+        <div class="year">2024</div>
+        <div class="title">Mies van der Rohe Award — Shortlist</div>
+        <div class="where">Fjord House</div>
+      </div>
+      <div class="recognition-item reveal reveal-d1">
+        <div class="year">2024</div>
+        <div class="title">Wallpaper* Design Awards</div>
+        <div class="where">Best New Practice, Finalist</div>
+      </div>
+      <div class="recognition-item reveal reveal-d2">
+        <div class="year">2023</div>
+        <div class="title">RIBA International Prize — Nominated</div>
+        <div class="where">Stone Library</div>
+      </div>
+      <div class="recognition-item reveal reveal-d3">
+        <div class="year">2023</div>
+        <div class="title">Dezeen Awards — Winner</div>
+        <div class="where">Atelier Mingei, Workspace</div>
+      </div>
+      <div class="recognition-item reveal">
+        <div class="year">2022</div>
+        <div class="title">Architectural Review</div>
+        <div class="where">Emerging Architecture, Highly Commended</div>
+      </div>
+      <div class="recognition-item reveal reveal-d1">
+        <div class="year">2022</div>
+        <div class="title">Venice Biennale — Contributing</div>
+        <div class="where">Timber & Carbon Pavilion</div>
+      </div>
+      <div class="recognition-item reveal reveal-d2">
+        <div class="year">2021</div>
+        <div class="title">AJ100 Practice of the Year</div>
+        <div class="where">Top 10, Northern Europe</div>
+      </div>
+      <div class="recognition-item reveal reveal-d3">
+        <div class="year">2020</div>
+        <div class="title">Harvard GSD — Loeb Lecture</div>
+        <div class="where">Founding Partner</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== TEAM ============== -->
+<section class="studio" id="team">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">05 — The People</span>
+      <h2>A studio of <em>22</em>.</h2>
+    </div>
+
+    <div class="studio-grid">
+      <div class="team-member reveal">
+        <div class="photo">
+          <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=900&q=80" alt="Founding Partner" />
+        </div>
+        <div class="info">
+          <div class="name">Founding Partner</div>
+          <div class="role">Architect / Director</div>
+        </div>
+      </div>
+      <div class="team-member reveal reveal-d1">
+        <div class="photo">
+          <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=80" alt="Urban Design Lead" />
+        </div>
+        <div class="info">
+          <div class="name">Tomás Ribeiro</div>
+          <div class="role">Urban Design Lead</div>
+        </div>
+      </div>
+      <div class="team-member reveal reveal-d2">
+        <div class="photo">
+          <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=900&q=80" alt="Interiors Lead" />
+        </div>
+        <div class="info">
+          <div class="name">Aiko Tanaka</div>
+          <div class="role">Interiors & Materials</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== CONTACT ============== -->
+<section class="contact" id="contact">
+  <div class="container">
+    <span class="eyebrow reveal">06 — Begin a Project</span>
+    <h2 class="reveal reveal-d1">Let's build something <em>quiet</em>,<br/>together.</h2>
+    <a href="mailto:hello@shreehawk.com" class="contact-btn reveal reveal-d2">
+      Start a conversation
+      <span class="arrow"></span>
+    </a>
+
+    <div class="contact-meta">
+      <div><strong>Oslo</strong>Tjuvholmen Allé 11, 0252</div>
+      <div><strong>Lisbon</strong>Rua das Janelas Verdes 38</div>
+      <div><strong>Tokyo</strong>Aoyama 5-chome, Minato-ku</div>
+      <div><strong>Email</strong>hello@shreehawk.com</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FOOTER ============== -->
+<footer>
+  <div class="container footer-grid">
+    <div>© 2024 ShreeHawk Architects. All rights reserved.</div>
+    <div class="links">
+      <span class="stripe"></span>
+      <a href="#">Instagram</a>
+      <a href="#">LinkedIn</a>
+      <a href="#">Journal</a>
+      <a href="#">Privacy</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  /* ============== Nav scroll state ============== */
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 30);
+  });
+
+  /* ============== Carousel ============== */
+  const SLIDE_DURATION = 9000;
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  const dotsEl = document.getElementById('dots');
+  const progressEl = document.getElementById('progress');
+  const currentEl = document.getElementById('current');
+
+  // Build dots
+  for (let i = 0; i < total; i++) {
+    const b = document.createElement('button');
+    b.setAttribute('aria-label', `Go to slide ${i + 1}`);
+    if (i === 0) b.classList.add('active');
+    b.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(b);
+  }
+  // Build progress bars
+  for (let i = 0; i < total; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    const fill = document.createElement('div');
+    fill.className = 'bar-fill';
+    bar.appendChild(fill);
+    progressEl.appendChild(bar);
+  }
+
+  let current = 0;
+  let timer = null;
+  let start = 0;
+  let paused = false;
+  const progressBars = progressEl.querySelectorAll('.bar-fill');
+  const dots = dotsEl.querySelectorAll('button');
+
+  function goTo(idx) {
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    progressBars[current].parentElement.classList.remove('done');
+    progressBars[current].style.transition = 'none';
+    progressBars[current].style.width = '0%';
+
+    current = (idx + total) % total;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    currentEl.textContent = String(current + 1).padStart(2, '0');
+
+    startProgress();
+  }
+
+  function startProgress() {
+    clearInterval(timer);
+    start = Date.now();
+    progressBars[current].style.transition = 'none';
+    progressBars[current].style.width = '0%';
+    requestAnimationFrame(() => {
+      progressBars[current].style.transition = `width ${SLIDE_DURATION}ms linear`;
+      progressBars[current].style.width = '100%';
+    });
+
+    timer = setInterval(() => {
+      if (!paused) goTo(current + 1);
+    }, SLIDE_DURATION);
+  }
+
+  document.getElementById('prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('next').addEventListener('click', () => goTo(current + 1));
+
+  // Pause on hover
+  const carousel = document.querySelector('.hero-carousel');
+  carousel.addEventListener('mouseenter', () => paused = true);
+  carousel.addEventListener('mouseleave', () => paused = false);
+
+  // Keyboard
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') goTo(current - 1);
+    if (e.key === 'ArrowRight') goTo(current + 1);
+  });
+
+  // Touch swipe
+  let touchStartX = 0;
+  carousel.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  carousel.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) goTo(current + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+
+  // Init
+  startProgress();
+  currentEl.textContent = '01';
+
+  /* ============== Reveal on scroll ============== */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* ============== Press Carousel ============== */
+  (function() {
+    const track = document.getElementById('pressTrack');
+    const dotsEl = document.getElementById('pressDots');
+    if (!track) return;
+    const slides = track.querySelectorAll('.press-slide');
+    const total = slides.length;
+    let idx = 0;
+    let auto;
+
+    // Build dots
+    for (let i = 0; i < total; i++) {
+      const b = document.createElement('button');
+      b.setAttribute('aria-label', `Go to quote ${i + 1}`);
+      if (i === 0) b.classList.add('active');
+      b.addEventListener('click', () => go(i));
+      dotsEl.appendChild(b);
+    }
+    const dots = dotsEl.querySelectorAll('button');
+
+    function go(i) {
+      idx = (i + total) % total;
+      track.style.transform = `translateX(-${idx * 100}%)`;
+      dots.forEach((d, n) => d.classList.toggle('active', n === idx));
+    }
+    function next() { go(idx + 1); }
+    function start() { stop(); auto = setInterval(next, 7000); }
+    function stop() { if (auto) clearInterval(auto); }
+
+    document.getElementById('pressNext').addEventListener('click', () => { next(); start(); });
+    document.getElementById('pressPrev').addEventListener('click', () => { go(idx - 1); start(); });
+
+    const section = document.querySelector('.press-carousel');
+    section.addEventListener('mouseenter', stop);
+    section.addEventListener('mouseleave', start);
+
+    // Touch swipe
+    let tx = 0;
+    section.addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, { passive: true });
+    section.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - tx;
+      if (Math.abs(dx) > 50) { go(idx + (dx < 0 ? 1 : -1)); start(); }
+    }, { passive: true });
+
+    start();
+  })();
+
+  /* ============== Smooth anchor scroll ============== */
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      const id = a.getAttribute('href');
+      if (id.length > 1) {
+        const target = document.querySelector(id);
+        if (target) {
+          e.preventDefault();
+          window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 70, behavior: 'smooth' });
+        }
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
