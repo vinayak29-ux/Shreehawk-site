@@ -141,6 +141,195 @@
   .menu-toggle { display: none; flex-direction: column; gap: 5px; width: 28px; }
   .menu-toggle span { display: block; height: 1.5px; background: var(--ink); transition: transform .3s, opacity .3s; }
 
+  /* ===================== Loader ===================== */
+  .loader {
+    position: fixed; inset: 0;
+    z-index: 9999;
+    background: #0A0A0A;
+    color: #FFFFFF;
+    overflow: hidden;
+    transition: opacity .9s ease, visibility .9s ease;
+  }
+  .loader.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+  body.loading { overflow: hidden; }
+
+  .loader-camo {
+    position: absolute; inset: 0;
+    background-color: #0A0A0A;
+    background-image:
+      radial-gradient(ellipse 80px 60px at 20% 30%, #2A2A2A 60%, transparent 62%),
+      radial-gradient(ellipse 100px 70px at 70% 20%, #1A1A1A 60%, transparent 62%),
+      radial-gradient(ellipse 90px 80px at 40% 80%, #2A2A2A 60%, transparent 62%),
+      radial-gradient(ellipse 70px 50px at 85% 75%, #1A1A1A 60%, transparent 62%),
+      radial-gradient(ellipse 60px 90px at 10% 70%, #1A1A1A 60%, transparent 62%);
+    opacity: 0.45;
+  }
+  .loader-stripe-tl {
+    position: absolute;
+    top: 0; left: 0;
+    width: 180px; height: 180px;
+    background:
+      linear-gradient(45deg, #FFFFFF 25%, transparent 25%) 0 0/10px 10px,
+      linear-gradient(-45deg, #FFFFFF 25%, transparent 25%) 0 0/10px 10px;
+    opacity: 0.85;
+  }
+  .loader-stripe-br {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 180px; height: 180px;
+    background:
+      linear-gradient(45deg, #FFFFFF 25%, transparent 25%) 0 0/10px 10px,
+      linear-gradient(-45deg, #FFFFFF 25%, transparent 25%) 0 0/10px 10px;
+    opacity: 0.85;
+    transform: rotate(180deg);
+  }
+  .loader-glow {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 600px; height: 600px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    animation: glowPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  }
+
+  .loader-corner {
+    position: absolute;
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+  }
+  .loader-corner-tl { top: 28px; left: 32px; }
+  .loader-corner-tr { top: 28px; right: 32px; }
+  .loader-corner-bl { bottom: 28px; left: 32px; }
+  .loader-corner-br { bottom: 28px; right: 32px; }
+
+  .loader-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center;
+    z-index: 2;
+  }
+
+  .loader-ring-wrap {
+    position: relative;
+    width: 240px; height: 240px;
+    display: grid; place-items: center;
+  }
+  .loader-ring {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+  .loader-ring circle { fill: none; }
+  .loader-ring .ring-bg {
+    stroke: rgba(255,255,255,0.08);
+    stroke-width: 1;
+  }
+  .loader-ring .ring-fg {
+    stroke: #FFFFFF;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 716;
+    stroke-dashoffset: 716;
+    transition: stroke-dashoffset 0.15s linear;
+  }
+  .loader-ring-tick {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+  }
+  .loader-ring-tick text {
+    fill: rgba(255,255,255,0.4);
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+  .loader-ring-tick.animate text {
+    animation: rotateText 8s linear infinite;
+    transform-origin: 120px 120px;
+  }
+  @keyframes rotateText { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+  .loader-logo {
+    position: relative;
+    width: 130px; height: 130px;
+    display: grid; place-items: center;
+    animation: logoFloat 3s ease-in-out infinite;
+  }
+  @keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  .loader-logo svg { width: 100%; height: 100%; color: #FFFFFF; }
+  .loader-logo .wing-l, .loader-logo .wing-r { transform-origin: 120px 100px; }
+  .loader-logo .wing-l { animation: wingFlapL 3s ease-in-out infinite; }
+  .loader-logo .wing-r { animation: wingFlapR 3s ease-in-out infinite; }
+  @keyframes wingFlapL { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.94); } }
+  @keyframes wingFlapR { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(0.94); } }
+
+  .loader-counter {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, calc(-50% + 80px));
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .loader-brand {
+    margin-top: 28px;
+    text-align: center;
+  }
+  .loader-name {
+    font-size: 24px; font-weight: 600;
+    letter-spacing: -0.015em;
+    line-height: 1;
+  }
+  .loader-tagline {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-top: 10px;
+  }
+
+  .loader-bar {
+    margin-top: 32px;
+    width: 260px; height: 1px;
+    background: rgba(255,255,255,0.12);
+    position: relative;
+    overflow: hidden;
+  }
+  .loader-bar-fill {
+    position: absolute; top: 0; left: 0; bottom: 0;
+    width: 0;
+    background: #FFFFFF;
+  }
+  .loader-foot {
+    position: absolute;
+    bottom: 28px; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 clamp(20px, 4vw, 56px);
+    font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+    z-index: 2;
+  }
+  .loader-foot .dot {
+    display: inline-block; width: 6px; height: 6px;
+    background: #FFFFFF; border-radius: 50%;
+    margin-right: 8px;
+    animation: loaderBlink 1s ease-in-out infinite;
+    vertical-align: middle;
+  }
+  @keyframes loaderBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
   /* ===================== Hero Carousel ===================== */
   .hero-carousel {
     position: relative;
@@ -758,7 +947,86 @@
   }
 </style>
 </head>
-<body>
+<body class="loading">
+
+<!-- ============== LOADER ============== -->
+<div class="loader" id="loader">
+  <div class="loader-camo"></div>
+  <div class="loader-stripe-tl"></div>
+  <div class="loader-stripe-br"></div>
+  <div class="loader-glow"></div>
+
+  <div class="loader-corner loader-corner-tl">SH / N°01</div>
+  <div class="loader-corner loader-corner-tr">2024 · v1.0</div>
+  <div class="loader-corner loader-corner-bl">Oslo · Lisbon · Tokyo</div>
+  <div class="loader-corner loader-corner-br">Est. 2007</div>
+
+  <div class="loader-center">
+    <div class="loader-ring-wrap">
+      <svg class="loader-ring" viewBox="0 0 240 240">
+        <circle class="ring-bg" cx="120" cy="120" r="114" />
+        <circle class="ring-fg" cx="120" cy="120" r="114" id="ringFg" />
+      </svg>
+      <svg class="loader-ring-tick animate" viewBox="0 0 240 240">
+        <defs>
+          <path id="ringPath" d="M 120, 120 m -106, 0 a 106,106 0 1,1 212,0 a 106,106 0 1,1 -212,0" />
+        </defs>
+        <text>
+          <textPath href="#ringPath" startOffset="0">SHREEHAWK · ARCHITECTURE & SPATIAL DESIGN · SHREEHAWK · ARCHITECTURE & SPATIAL DESIGN ·</textPath>
+        </text>
+      </svg>
+      <div class="loader-logo">
+        <svg viewBox="0 0 240 280" xmlns="http://www.w3.org/2000/svg">
+          <g fill="currentColor">
+            <!-- Hawk — spread wings -->
+            <path class="wing-l" d="M120 95
+              C 95 80, 60 72, 32 75
+              C 22 76, 18 82, 24 84
+              C 50 80, 80 85, 102 96
+              C 110 99, 116 102, 120 105
+              Z" />
+            <path class="wing-r" d="M120 95
+              C 145 80, 180 72, 208 75
+              C 218 76, 222 82, 216 84
+              C 190 80, 160 85, 138 96
+              C 130 99, 124 102, 120 105
+              Z" />
+            <!-- Wing tips -->
+            <path d="M24 84 L 28 90 L 26 84 Z" />
+            <path d="M216 84 L 212 90 L 214 84 Z" />
+            <!-- Body -->
+            <path d="M112 90 L 106 155 L 134 155 L 128 90 Z" />
+            <!-- Head -->
+            <path d="M120 70 L 108 88 L 132 88 Z" />
+            <!-- Beak -->
+            <path d="M120 78 L 115 88 L 120 85 L 125 88 Z" />
+            <!-- Pillar — 4 steps + cap -->
+            <rect x="56" y="248" width="128" height="18" />
+            <rect x="68" y="223" width="104" height="18" />
+            <rect x="82" y="198" width="76" height="18" />
+            <rect x="96" y="173" width="48" height="18" />
+            <rect x="108" y="155" width="24" height="15" />
+          </g>
+        </svg>
+      </div>
+      <div class="loader-counter" id="loaderCounter">000%</div>
+    </div>
+
+    <div class="loader-brand">
+      <div class="loader-name">ShreeHawk</div>
+      <div class="loader-tagline">Architecture &amp; Spatial Design</div>
+    </div>
+
+    <div class="loader-bar">
+      <div class="loader-bar-fill" id="loaderBar"></div>
+    </div>
+  </div>
+
+  <div class="loader-foot">
+    <div><span class="dot"></span>Loading</div>
+    <div>Welcome</div>
+  </div>
+</div>
 
 <!-- ============== NAV ============== -->
 <nav class="nav" id="nav">
@@ -1240,7 +1508,7 @@
   });
 
   /* ============== Carousel ============== */
-  const SLIDE_DURATION = 9000;
+  const SLIDE_DURATION = 5500;
   const slides = document.querySelectorAll('.slide');
   const total = slides.length;
   const dotsEl = document.getElementById('dots');
@@ -1327,6 +1595,53 @@
   // Init
   startProgress();
   currentEl.textContent = '01';
+
+  /* ============== Loader ============== */
+  (function() {
+    const loader = document.getElementById('loader');
+    const counter = document.getElementById('loaderCounter');
+    const bar = document.getElementById('loaderBar');
+    const ring = document.getElementById('ringFg');
+    if (!loader) return;
+
+    // Ring circumference (r=114) = 2πr = 716.3
+    const RING_CIRC = 716;
+
+    let progress = 0;
+    const totalDuration = 3000; // total 3s
+    const startTime = performance.now();
+    let rafId;
+
+    function update(now) {
+      const elapsed = now - startTime;
+      // Smooth easing: ease-out
+      const t = Math.min(1, elapsed / totalDuration);
+      const eased = 1 - Math.pow(1 - t, 2.2);
+      progress = eased * 100;
+
+      // Counter
+      const display = Math.floor(progress);
+      counter.textContent = String(display).padStart(3, '0') + '%';
+      // Bar
+      bar.style.width = progress + '%';
+      // Ring
+      const offset = RING_CIRC * (1 - progress / 100);
+      ring.style.strokeDashoffset = offset;
+
+      if (t < 1) {
+        rafId = requestAnimationFrame(update);
+      } else {
+        // Settle at 100% briefly, then fade out
+        counter.textContent = '100%';
+        setTimeout(() => {
+          loader.classList.add('hide');
+          document.body.classList.remove('loading');
+          setTimeout(() => loader.remove(), 1000);
+        }, 200);
+      }
+    }
+    rafId = requestAnimationFrame(update);
+  })();
 
   /* ============== Reveal on scroll ============== */
   const io = new IntersectionObserver((entries) => {
